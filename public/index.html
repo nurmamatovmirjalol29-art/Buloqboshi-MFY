@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0e5c4a" />
+  <title>Buloqboshi MFY — Mening Qadrdon Mahallam | Nurobod</title>
+  <meta name="description" content="Buloqboshi mahallasi — Nurobod tumanidagi qadrdon maskan. Joylar, tarix, xotiralar va mahalla hayoti." />
+  <meta property="og:title" content="Buloqboshi MFY — Mening Qadrdon Mahallam" />
+  <meta property="og:description" content="Mahallamizning yuragi — joylar, odamlar va xotiralar." />
+  <meta property="og:type" content="website" />
+
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.json" />
+
+  <!-- Shriftlar -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Xarita -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <!-- GLightbox (rasmni kattalashtirish) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/glightbox/dist/css/glightbox.min.css" />
+
+  <!-- O'z uslublari -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="nav" id="nav">
+    <div class="container nav__inner">
+      <a href="#home" class="nav__logo">
+        <span class="logo-dot"></span>
+        Buloqboshi <span class="logo-sub">MFY</span>
+      </a>
+      <nav class="nav__links" id="navLinks">
+        <a href="#home">Bosh sahifa</a>
+        <a href="#xarita">Xarita</a>
+        <a href="#joylar">Joylar</a>
+        <a href="#lavhalar">Lavhalar</a>
+        <a href="#hikoya" class="nav__cta">Hikoya qo'shish</a>
+      </nav>
+      <button class="nav__burger" id="burger" aria-label="Menyu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero" id="home">
+    <div class="hero__bg"></div>
+    <div class="container hero__inner">
+      <div class="hero__badge">Buloqboshi MFY · Nurobod tumani</div>
+      <h1 class="hero__title">
+        Bizning mahalla,<br>
+        <em>bizning hikoya.</em>
+      </h1>
+      <p class="hero__lead">
+        Buloqboshi — odamlar bir-birini ismi bilan taniydigan, har bir ko'cha
+        o'z xotirasiga ega bo'lgan qadrdon maskan.
+      </p>
+      <div class="hero__actions">
+        <a href="#joylar" class="btn btn--primary">Joylarga sayohat</a>
+        <a href="#hikoya" class="btn btn--ghost">Hikoya qo'shish</a>
+      </div>
+      <div class="hero__stats">
+        <div><strong id="statJoy">6</strong><span>qadrli maskan</span></div>
+        <div><strong id="statYil">150</strong><span>yillik tarix</span></div>
+        <div><strong id="statXotira">0</strong><span>xotira yozilgan</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- XARITA -->
+  <section class="section" id="xarita">
+    <div class="container">
+      <div class="section__head">
+        <span class="section__eyebrow">Mahalla xaritasi</span>
+        <h2 class="section__title">Bu yerda hayot bor.</h2>
+        <p class="section__sub">
+          Qayerda choy ichiladi, qayerda bolalar o'ynaydi, qaysi burchak tongni
+          eng chiroyli kutib oladi — barchasini birga topamiz.
+        </p>
+      </div>
+      <iframe
+  src="https://www.google.com/maps?q=39.648472,65.976070&z=14&output=embed"
+  width="100%"
+  height="480"
+  style="border:0;border-radius:20px;box-shadow:0 24px 60px -20px rgba(30,27,22,.25)"
+  allowfullscreen=""
+  loading="lazy">
+</iframe>
+    </div>
+  </section>
+
+  <!-- JOYLAR -->
+  <section class="section section--alt" id="joylar">
+    <div class="container">
+      <div class="section__head">
+        <span class="section__eyebrow">Joylar va manzillar</span>
+        <h2 class="section__title">Mahallamizning yuragi</h2>
+      </div>
+     <div class="filters" id="filters">
+  <button class="chip is-active" data-filter="all">Barchasi</button>
+  <button class="chip" data-filter="ilm">Ilm maskani</button>
+  <button class="chip" data-filter="ibodat">Ibodat</button>
+  <button class="chip" data-filter="tibbiyot">Tibbiyot</button>
+  <button class="chip" data-filter="dam">Dam olish</button>
+  <button class="chip" data-filter="savdo">Savdo</button>
+  <button class="chip" data-filter="tabiat">Tabiat</button>
+  <button class="chip" data-filter="hokimiyat">Hokimiyat</button>
+</div>
+      <div class="cards" id="cards"></div>
+    </div>
+  </section>
+
+  <!-- LAVHALAR -->
+  <section class="section" id="lavhalar">
+    <div class="container">
+      <div class="section__head">
+        <span class="section__eyebrow">So'nggi lavhalar</span>
+        <h2 class="section__title">Xotiralar albomi</h2>
+        <p class="section__sub">Mahalla hayotidan yorqin lahzalar. Rasmga bosing — kattalashtirib ko'ring.</p>
+      </div>
+      <div class="gallery" id="gallery"></div>
+    </div>
+  </section>
+
+  <!-- HIKOYA -->
+  <section class="section section--alt" id="hikoya">
+    <div class="container hikoya">
+      <div class="hikoya__text">
+        <span class="section__eyebrow">Sizning xotirangiz</span>
+        <h2 class="section__title">Shu mahallaga tegishli.</h2>
+        <p>
+          Bir surat, bir voqea yoki oddiygina yaxshi so'z — Buloqboshi
+          tarixining yangi sahifasi bo'lishi mumkin.
+        </p>
+        <ul class="hikoya__list">
+          <li>Ismingizni qoldiring</li>
+          <li>Rasm tanlang (galereyadan)</li>
+          <li>Xotirani yozing</li>
+          <li>Moderatsiyadan keyin saytda chiqadi</li>
+        </ul>
+      </div>
+
+      <form class="form" id="form" enctype="multipart/form-data" novalidate>
+        <div class="field">
+          <label for="ism">Ismingiz *</label>
+          <input type="text" id="ism" name="ism" placeholder="Masalan: Mirjalol" required />
+          <small class="error" data-for="ism"></small>
+        </div>
+
+        <div class="field">
+          <label for="email">Email (ixtiyoriy)</label>
+          <input type="email" id="email" name="email" placeholder="siz@misol.uz" />
+          <small class="error" data-for="email"></small>
+        </div>
+
+        <div class="field">
+          <label for="matn">Xotirangiz *</label>
+          <textarea id="matn" name="matn" rows="5" placeholder="Bolaligimda bu yerda..." required></textarea>
+          <small class="error" data-for="matn"></small>
+        </div>
+
+        <div class="field">
+          <label for="rasm">Rasm (ixtiyoriy)</label>
+          <input type="file" id="rasm" name="rasm" accept="image/*" />
+          <small class="error" data-for="rasm"></small>
+          <div id="rasmPreview" class="rasm-preview" hidden></div>
+        </div>
+
+        <button type="submit" class="btn btn--primary btn--block" id="submitBtn">
+          Hikoyani yuborish
+        </button>
+        <p class="form__note">Yuborilgach, moderator tasdiqlagach saytda chiqadi.</p>
+        <div class="form__ok" id="formOk" hidden></div>
+        <div class="form__err" id="formErr" hidden></div>
+      </form>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container footer__inner">
+      <div>
+        <h4>Buloqboshi MFY</h4>
+        <p>Samarqand viloyati, Nurobod tumani<br>1-Sepki ko'chasi, 293</p>
+      </div>
+      <div>
+        <h4>Bo'limlar</h4>
+        <a href="#xarita">Xarita</a>
+        <a href="#joylar">Joylar</a>
+        <a href="#lavhalar">Lavhalar</a>
+        <a href="#hikoya">Hikoya qo'shish</a>
+      </div>
+      <div>
+        <h4>Aloqa</h4>
+        <a href="tel:+998900000000">+998 90 000 00 00</a>
+        <a href="mailto:info@buloqboshi.uz">info@buloqboshi.uz</a>
+        <a href="#">Telegram kanal</a>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <div class="container">
+        © <span id="yil"></span> Buloqboshi MFY. Barcha huquqlar himoyalangan.
+      </div>
+    </div>
+  </footer>
+
+  <!-- Skriptlar -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
