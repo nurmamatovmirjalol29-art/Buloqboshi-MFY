@@ -1,0 +1,7 @@
+node_modelus/
+.env
+uploads/
+data/stories.json
+data/places.json
+*.log
+.DS_Store
