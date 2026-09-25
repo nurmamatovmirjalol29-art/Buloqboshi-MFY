@@ -5,3 +5,4 @@ data/stories.json
 data/places.json
 *.log
 .DS_Store
+.idea/
