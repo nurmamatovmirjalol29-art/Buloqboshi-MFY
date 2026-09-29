@@ -5,26 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#0e5c4a" />
   <title>Buloqboshi MFY — Mening Qadrdon Mahallam | Nurobod</title>
-  <meta name="description" content="Buloqboshi mahallasi — Nurobod tumanidagi qadrdon maskan. Joylar, tarix, xotiralar va mahalla hayoti." />
-  <meta property="og:title" content="Buloqboshi MFY — Mening Qadrdon Mahallam" />
-  <meta property="og:description" content="Mahallamizning yuragi — joylar, odamlar va xotiralar." />
-  <meta property="og:type" content="website" />
+  <meta name="description" content="Buloqboshi mahallasi — Nurobod tumanidagi qadrdon maskan." />
 
-  <!-- PWA -->
   <link rel="manifest" href="/manifest.json" />
+  <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="/icons/icon-512.png" />
 
-  <!-- Shriftlar -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-  <!-- Xarita -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-
-  <!-- GLightbox (rasmni kattalashtirish) -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/glightbox/dist/css/glightbox.min.css" />
-
-  <!-- O'z uslublari -->
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -37,11 +29,20 @@
         Buloqboshi <span class="logo-sub">MFY</span>
       </a>
       <nav class="nav__links" id="navLinks">
-        <a href="#home">Bosh sahifa</a>
-        <a href="#xarita">Xarita</a>
-        <a href="#joylar">Joylar</a>
-        <a href="#lavhalar">Lavhalar</a>
-        <a href="#hikoya" class="nav__cta">Hikoya qo'shish</a>
+        <a href="#home" data-i18n="nav_home">Bosh sahifa</a>
+        <a href="#xarita" data-i18n="nav_map">Xarita</a>
+        <a href="#joylar" data-i18n="nav_places">Joylar</a>
+        <a href="#lavhalar" data-i18n="nav_gallery">Lavhalar</a>
+        <a href="#hikoya" class="nav__cta">
+          <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
+          <span data-i18n="nav_cta">Hikoya qo'shish</span>
+        </a>
+        <div class="lang-switch" id="langSwitch">
+          <button class="lang-btn is-active" data-lang="uz">UZ</button>
+          <button class="lang-btn" data-lang="uzc">ЎЗ</button>
+          <button class="lang-btn" data-lang="ru">RU</button>
+          <button class="lang-btn" data-lang="en">EN</button>
+        </div>
       </nav>
       <button class="nav__burger" id="burger" aria-label="Menyu">
         <span></span><span></span><span></span>
@@ -51,25 +52,53 @@
 
   <!-- HERO -->
   <section class="hero" id="home">
-    <div class="hero__bg"></div>
-    <div class="container hero__inner">
-      <div class="hero__badge">Buloqboshi MFY · Nurobod tumani</div>
-      <h1 class="hero__title">
-        Bizning mahalla,<br>
-        <em>bizning hikoya.</em>
-      </h1>
-      <p class="hero__lead">
-        Buloqboshi — odamlar bir-birini ismi bilan taniydigan, har bir ko'cha
-        o'z xotirasiga ega bo'lgan qadrdon maskan.
-      </p>
-      <div class="hero__actions">
-        <a href="#joylar" class="btn btn--primary">Joylarga sayohat</a>
-        <a href="#hikoya" class="btn btn--ghost">Hikoya qo'shish</a>
+    <div class="container hero__grid">
+      <div>
+        <div class="hero__eyebrow">
+          <span class="logo-dot"></span>
+          <span data-i18n="hero_eyebrow">Nurobod tumani, Buloqboshi MFY</span>
+        </div>
+        <h1 class="hero__title">
+          <span data-i18n="hero_title_1">Bizning mahalla,</span><br>
+          <span class="accent" data-i18n="hero_title_2">bizning hikoya.</span>
+        </h1>
+        <p class="hero__lead" data-i18n="hero_lead">
+          Buloqboshi — odamlar bir-birini ismi bilan taniydigan, har bir ko'cha o'z xotirasiga ega bo'lgan qadrdon maskan.
+        </p>
+        <div class="hero__actions">
+          <a href="#joylar" class="btn btn--primary">
+            <span data-i18n="hero_btn_places">Joylarga sayohat</span>
+            <svg class="icon" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </a>
+          <a href="#hikoya" class="btn btn--ghost">
+            <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
+            <span data-i18n="hero_btn_story">Hikoya qo'shish</span>
+          </a>
+        </div>
+        <div class="hero__stats">
+          <div>
+            <strong id="statJoy">10</strong><span data-i18n="hero_stat_places">qadrli maskan</span>
+          </div>
+          <div>
+            <strong id="statYil">150</strong><span data-i18n="hero_stat_years">yillik tarix</span>
+          </div>
+          <div>
+            <strong id="statXotira">0</strong><span data-i18n="hero_stat_memories">xotira yozilgan</span>
+          </div>
+        </div>
       </div>
-      <div class="hero__stats">
-        <div><strong id="statJoy">6</strong><span>qadrli maskan</span></div>
-        <div><strong id="statYil">150</strong><span>yillik tarix</span></div>
-        <div><strong id="statXotira">0</strong><span>xotira yozilgan</span></div>
+
+      <div class="hero__art">
+        <div class="hero__art-img">
+          <img src="https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?w=1000&q=80" alt="Buloqboshi buloq" />
+        </div>
+        <div class="hero__art-card">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M12 21s7-6.5 7-12a7 7 0 0 0-14 0c0 5.5 7 12 7 12Z"/><circle cx="12" cy="9" r="2.5"/></svg>
+          <div>
+            <strong data-i18n="hero_card_title">Buloq</strong>
+            <span data-i18n="hero_card_text">Mahalla nomi shu chashmadan kelib chiqqan</span>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -78,21 +107,22 @@
   <section class="section" id="xarita">
     <div class="container">
       <div class="section__head">
-        <span class="section__eyebrow">Mahalla xaritasi</span>
-        <h2 class="section__title">Bu yerda hayot bor.</h2>
-        <p class="section__sub">
-          Qayerda choy ichiladi, qayerda bolalar o'ynaydi, qaysi burchak tongni
-          eng chiroyli kutib oladi — barchasini birga topamiz.
-        </p>
+        <div class="section__head-text">
+          <span class="section__eyebrow" data-i18n="map_eyebrow">Mahalla xaritasi</span>
+          <h2 class="section__title" data-i18n="map_title">Bu yerda hayot bor.</h2>
+          <p class="section__sub" data-i18n="map_sub">
+            Qayerda choy ichiladi, qayerda bolalar o'ynaydi — barchasini birga topamiz.
+          </p>
+        </div>
       </div>
       <iframe
-  src="https://www.google.com/maps?q=39.648472,65.976070&z=14&output=embed"
-  width="100%"
-  height="480"
-  style="border:0;border-radius:20px;box-shadow:0 24px 60px -20px rgba(30,27,22,.25)"
-  allowfullscreen=""
-  loading="lazy">
-</iframe>
+        src="https://www.google.com/maps?q=39.648472,65.976070&z=14&output=embed"
+        width="100%"
+        height="460"
+        style="border:0;border-radius:28px;box-shadow:0 16px 40px -18px rgba(30,27,22,.22)"
+        allowfullscreen=""
+        loading="lazy">
+      </iframe>
     </div>
   </section>
 
@@ -100,19 +130,38 @@
   <section class="section section--alt" id="joylar">
     <div class="container">
       <div class="section__head">
-        <span class="section__eyebrow">Joylar va manzillar</span>
-        <h2 class="section__title">Mahallamizning yuragi</h2>
+        <div class="section__head-text">
+          <span class="section__eyebrow" data-i18n="places_eyebrow">Joylar va manzillar</span>
+          <h2 class="section__title" data-i18n="places_title">Mahallamizning yuragi</h2>
+        </div>
       </div>
-     <div class="filters" id="filters">
-  <button class="chip is-active" data-filter="all">Barchasi</button>
-  <button class="chip" data-filter="ilm">Ilm maskani</button>
-  <button class="chip" data-filter="ibodat">Ibodat</button>
-  <button class="chip" data-filter="tibbiyot">Tibbiyot</button>
-  <button class="chip" data-filter="dam">Dam olish</button>
-  <button class="chip" data-filter="savdo">Savdo</button>
-  <button class="chip" data-filter="tabiat">Tabiat</button>
-  <button class="chip" data-filter="hokimiyat">Hokimiyat</button>
-</div>
+      <div class="filters" id="filters">
+        <button class="chip is-active" data-filter="all">
+          <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>
+          <span data-i18n="filter_all">Barchasi</span>
+        </button>
+        <button class="chip" data-filter="ilm">
+          <span data-i18n-tur="ilm">Ilm maskani</span>
+        </button>
+        <button class="chip" data-filter="ibodat">
+          <span data-i18n-tur="ibodat">Ibodat</span>
+        </button>
+        <button class="chip" data-filter="tibbiyot">
+          <span data-i18n-tur="tibbiyot">Tibbiyot</span>
+        </button>
+        <button class="chip" data-filter="dam">
+          <span data-i18n-tur="dam">Dam olish</span>
+        </button>
+        <button class="chip" data-filter="savdo">
+          <span data-i18n-tur="savdo">Savdo</span>
+        </button>
+        <button class="chip" data-filter="tabiat">
+          <span data-i18n-tur="tabiat">Tabiat</span>
+        </button>
+        <button class="chip" data-filter="hokimiyat">
+          <span data-i18n-tur="hokimiyat">Hokimiyat</span>
+        </button>
+      </div>
       <div class="cards" id="cards"></div>
     </div>
   </section>
@@ -121,9 +170,11 @@
   <section class="section" id="lavhalar">
     <div class="container">
       <div class="section__head">
-        <span class="section__eyebrow">So'nggi lavhalar</span>
-        <h2 class="section__title">Xotiralar albomi</h2>
-        <p class="section__sub">Mahalla hayotidan yorqin lahzalar. Rasmga bosing — kattalashtirib ko'ring.</p>
+        <div class="section__head-text">
+          <span class="section__eyebrow" data-i18n="gallery_eyebrow">So'nggi lavhalar</span>
+          <h2 class="section__title" data-i18n="gallery_title">Xotiralar albomi</h2>
+          <p class="section__sub" data-i18n="gallery_sub">Mahalla hayotidan yorqin lahzalar.</p>
+        </div>
       </div>
       <div class="gallery" id="gallery"></div>
     </div>
@@ -133,50 +184,45 @@
   <section class="section section--alt" id="hikoya">
     <div class="container hikoya">
       <div class="hikoya__text">
-        <span class="section__eyebrow">Sizning xotirangiz</span>
-        <h2 class="section__title">Shu mahallaga tegishli.</h2>
-        <p>
-          Bir surat, bir voqea yoki oddiygina yaxshi so'z — Buloqboshi
-          tarixining yangi sahifasi bo'lishi mumkin.
+        <span class="section__eyebrow" data-i18n="story_eyebrow">Sizning xotirangiz</span>
+        <h2 class="section__title" data-i18n="story_title">Shu mahallaga tegishli.</h2>
+        <p data-i18n="story_lead">
+          Bir surat, bir voqea yoki oddiygina yaxshi so'z — Buloqboshi tarixining yangi sahifasi.
         </p>
         <ul class="hikoya__list">
-          <li>Ismingizni qoldiring</li>
-          <li>Rasm tanlang (galereyadan)</li>
-          <li>Xotirani yozing</li>
-          <li>Moderatsiyadan keyin saytda chiqadi</li>
+          <li data-i18n="story_li1">Ismingizni qoldiring</li>
+          <li data-i18n="story_li2">Rasm tanlang (galereyadan)</li>
+          <li data-i18n="story_li3">Xotirani yozing</li>
+          <li data-i18n="story_li4">Moderatsiyadan keyin saytda chiqadi</li>
         </ul>
       </div>
 
       <form class="form" id="form" enctype="multipart/form-data" novalidate>
         <div class="field">
-          <label for="ism">Ismingiz *</label>
-          <input type="text" id="ism" name="ism" placeholder="Masalan: Mirjalol" required />
+          <label for="ism"><span data-i18n="form_label_name">Ismingiz *</span></label>
+          <input type="text" id="ism" name="ism" data-i18n-placeholder="form_placeholder_name" placeholder="Masalan: Mirjalol" required />
           <small class="error" data-for="ism"></small>
         </div>
-
         <div class="field">
-          <label for="email">Email (ixtiyoriy)</label>
+          <label for="email"><span data-i18n="form_label_email">Email (ixtiyoriy)</span></label>
           <input type="email" id="email" name="email" placeholder="siz@misol.uz" />
           <small class="error" data-for="email"></small>
         </div>
-
         <div class="field">
-          <label for="matn">Xotirangiz *</label>
-          <textarea id="matn" name="matn" rows="5" placeholder="Bolaligimda bu yerda..." required></textarea>
+          <label for="matn"><span data-i18n="form_label_memory">Xotirangiz *</span></label>
+          <textarea id="matn" name="matn" rows="5" data-i18n-placeholder="form_placeholder_memory" placeholder="Bolaligimda bu yerda..." required></textarea>
           <small class="error" data-for="matn"></small>
         </div>
-
         <div class="field">
-          <label for="rasm">Rasm (ixtiyoriy)</label>
+          <label for="rasm"><span data-i18n="form_label_photo">Rasm (ixtiyoriy)</span></label>
           <input type="file" id="rasm" name="rasm" accept="image/*" />
           <small class="error" data-for="rasm"></small>
           <div id="rasmPreview" class="rasm-preview" hidden></div>
         </div>
-
         <button type="submit" class="btn btn--primary btn--block" id="submitBtn">
-          Hikoyani yuborish
+          <span data-i18n="form_submit">Hikoyani yuborish</span>
         </button>
-        <p class="form__note">Yuborilgach, moderator tasdiqlagach saytda chiqadi.</p>
+        <p class="form__note" data-i18n="form_note">Yuborilgach, moderator tasdiqlagach saytda chiqadi.</p>
         <div class="form__ok" id="formOk" hidden></div>
         <div class="form__err" id="formErr" hidden></div>
       </form>
@@ -191,27 +237,26 @@
         <p>Samarqand viloyati, Nurobod tumani<br>1-Sepki ko'chasi, 293</p>
       </div>
       <div>
-        <h4>Bo'limlar</h4>
-        <a href="#xarita">Xarita</a>
-        <a href="#joylar">Joylar</a>
-        <a href="#lavhalar">Lavhalar</a>
-        <a href="#hikoya">Hikoya qo'shish</a>
+        <h4 data-i18n="footer_sections">Bo'limlar</h4>
+        <a href="#xarita" data-i18n="nav_map">Xarita</a>
+        <a href="#joylar" data-i18n="nav_places">Joylar</a>
+        <a href="#lavhalar" data-i18n="nav_gallery">Lavhalar</a>
+        <a href="#hikoya" data-i18n="nav_cta">Hikoya qo'shish</a>
       </div>
       <div>
-        <h4>Aloqa</h4>
+        <h4 data-i18n="footer_contact">Aloqa</h4>
         <a href="tel:+998900000000">+998 90 000 00 00</a>
         <a href="mailto:info@buloqboshi.uz">info@buloqboshi.uz</a>
-        <a href="#">Telegram kanal</a>
+        <a href="#"><span data-i18n="footer_telegram">Telegram kanal</span></a>
       </div>
     </div>
     <div class="footer__bottom">
       <div class="container">
-        © <span id="yil"></span> Buloqboshi MFY. Barcha huquqlar himoyalangan.
+        © <span id="yil"></span> Buloqboshi MFY. <span data-i18n="footer_rights">Barcha huquqlar himoyalangan.</span>
       </div>
     </div>
   </footer>
 
-  <!-- Skriptlar -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
   <script src="script.js"></script>
