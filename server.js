@@ -6,6 +6,8 @@ import { fileURLToPath } from "url";
 import rateLimit from "express-rate-limit";
 import multer from "multer";
 import dotenv from "dotenv";
+import { pool, initDb } from "./db.js";
+import { hasCloudinary, uploadBuffer, deleteByPublicId } from "./cloudinary.js";
 
 dotenv.config();
 
@@ -14,26 +16,19 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "buloqboshi2025";
 
-const DATA_DIR = path.join(__dirname, "data");
-const STORIES_FILE = path.join(DATA_DIR, "stories.json");
-const PLACES_FILE = path.join(DATA_DIR, "places.json");
 const UPLOADS_DIR = path.join(__dirname, "uploads");
-
-// Papkalar va fayllar bo'lmasa yaratish
-if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR);
-if (!fs.existsSync(STORIES_FILE)) fs.writeFileSync(STORIES_FILE, "[]");
-if (!fs.existsSync(PLACES_FILE)) fs.writeFileSync(PLACES_FILE, "[]");
 if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR);
 
-// Multer sozlash (rasm yuklash uchun)
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, UPLOADS_DIR),
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase();
-    const uniqueName = Date.now().toString(36) + Math.random().toString(36).slice(2, 8) + ext;
-    cb(null, uniqueName);
-  }
-});
+const storage = hasCloudinary
+  ? multer.memoryStorage()
+  : multer.diskStorage({
+      destination: (req, file, cb) => cb(null, UPLOADS_DIR),
+      filename: (req, file, cb) => {
+        const ext = path.extname(file.originalname).toLowerCase();
+        const uniqueName = Date.now().toString(36) + Math.random().toString(36).slice(2, 8) + ext;
+        cb(null, uniqueName);
+      }
+    });
 
 const upload = multer({
   storage,
@@ -41,215 +36,230 @@ const upload = multer({
   fileFilter: (req, file, cb) => {
     const allowed = [".jpg", ".jpeg", ".png", ".webp", ".gif"];
     const ext = path.extname(file.originalname).toLowerCase();
-    if (allowed.includes(ext)) {
-      cb(null, true);
-    } else {
-      cb(new Error("Faqat rasm fayllari (jpg, png, webp, gif) qabul qilinadi"));
-    }
+    if (allowed.includes(ext)) cb(null, true);
+    else cb(new Error("Faqat rasm fayllari qabul qilinadi"));
   }
 });
 
-// Middleware
 app.use(cors());
 app.use(express.json({ limit: "1mb" }));
 app.use(express.static(path.join(__dirname, "public")));
 app.use("/uploads", express.static(UPLOADS_DIR));
 
-// Rate limit
 const limiter = rateLimit({
   windowMs: 60 * 1000,
   max: 5,
   message: { error: "Juda ko'p so'rov. Bir daqiqadan keyin urinib ko'ring." }
 });
 
-// ============ YORDAMCHI FUNKSIYALAR ============
-
-function readStories() {
-  try {
-    return JSON.parse(fs.readFileSync(STORIES_FILE, "utf8"));
-  } catch {
-    return [];
-  }
-}
-
-function writeStories(arr) {
-  fs.writeFileSync(STORIES_FILE, JSON.stringify(arr, null, 2));
-}
-
-function readPlaces() {
-  try {
-    return JSON.parse(fs.readFileSync(PLACES_FILE, "utf8"));
-  } catch {
-    return [];
-  }
-}
-
-function writePlaces(arr) {
-  fs.writeFileSync(PLACES_FILE, JSON.stringify(arr, null, 2));
-}
-
 function authMiddleware(req, res, next) {
   const pass = req.headers["x-admin-password"] || req.query.password;
-  if (pass !== ADMIN_PASSWORD) {
-    return res.status(401).json({ error: "Ruxsat yo'q" });
-  }
+  if (pass !== ADMIN_PASSWORD) return res.status(401).json({ error: "Ruxsat yo'q" });
   next();
 }
 
-// ============ STORIES API ============
+function asyncRoute(fn) {
+  return (req, res, next) => fn(req, res, next).catch(next);
+}
 
-// Barcha tasdiqlangan hikoyalar (ommaviy)
-app.get("/api/stories", (req, res) => {
-  const stories = readStories().filter(s => s.approved);
-  res.json(stories);
-});
+/* ============ STORIES ============ */
 
-// Yangi hikoya qo'shish
-app.post("/api/stories", limiter, upload.single("rasm"), (req, res) => {
+app.get("/api/stories", asyncRoute(async (req, res) => {
+  const { rows } = await pool.query("SELECT * FROM stories WHERE approved = true ORDER BY sana DESC");
+  res.json(rows);
+}));
+
+app.post("/api/stories", limiter, upload.single("rasm"), asyncRoute(async (req, res) => {
   const { ism, email, matn } = req.body || {};
-
   if (!ism || ism.trim().length < 2) {
-    if (req.file) fs.unlinkSync(req.file.path);
+    if (req.file && req.file.path) fs.unlinkSync(req.file.path);
     return res.status(400).json({ error: "Ism kamida 2 harf bo'lishi kerak" });
   }
   if (!matn || matn.trim().length < 10) {
-    if (req.file) fs.unlinkSync(req.file.path);
+    if (req.file && req.file.path) fs.unlinkSync(req.file.path);
     return res.status(400).json({ error: "Xotira kamida 10 belgi bo'lishi kerak" });
   }
   if (email && !/^\S+@\S+\.\S+$/.test(email)) {
-    if (req.file) fs.unlinkSync(req.file.path);
+    if (req.file && req.file.path) fs.unlinkSync(req.file.path);
     return res.status(400).json({ error: "Email formati noto'g'ri" });
   }
 
-  const stories = readStories();
-  const yangi = {
-    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 8),
-    ism: ism.trim().slice(0, 60),
-    email: email ? email.trim().slice(0, 80) : "",
-    matn: matn.trim().slice(0, 2000),
-    sana: new Date().toISOString(),
-    approved: false,
-    rasm: req.file ? "/uploads/" + req.file.filename : ""
-  };
-  stories.unshift(yangi);
-  writeStories(stories);
+  const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  let rasm = "";
+  let rasmPublicId = "";
+
+  if (req.file) {
+    if (hasCloudinary) {
+      const result = await uploadBuffer(req.file.buffer, "buloqboshi/hikoyalar");
+      rasm = result.secure_url;
+      rasmPublicId = result.public_id;
+    } else {
+      rasm = "/uploads/" + req.file.filename;
+    }
+  }
+
+  await pool.query(
+    `INSERT INTO stories (id, ism, email, matn, sana, approved, rasm, rasm_public_id)
+     VALUES ($1, $2, $3, $4, now(), false, $5, $6)`,
+    [id, ism.trim().slice(0, 60), email ? email.trim().slice(0, 80) : "", matn.trim().slice(0, 2000), rasm, rasmPublicId]
+  );
 
   res.json({ ok: true, message: "Hikoyangiz qabul qilindi. Moderatsiyadan keyin chiqadi." });
-});
+}));
 
-// ============ STORIES ADMIN API ============
+/* ============ STORIES ADMIN ============ */
 
-app.get("/api/admin/stories", authMiddleware, (req, res) => {
-  res.json(readStories());
-});
+app.get("/api/admin/stories", authMiddleware, asyncRoute(async (req, res) => {
+  const { rows } = await pool.query("SELECT * FROM stories ORDER BY sana DESC");
+  res.json(rows);
+}));
 
-app.post("/api/admin/stories/:id/approve", authMiddleware, (req, res) => {
-  const stories = readStories();
-  const s = stories.find(x => x.id === req.params.id);
-  if (!s) return res.status(404).json({ error: "Topilmadi" });
-  s.approved = true;
-  writeStories(stories);
+app.post("/api/admin/stories/:id/approve", authMiddleware, asyncRoute(async (req, res) => {
+  const { rows } = await pool.query("UPDATE stories SET approved = true WHERE id = $1 RETURNING id", [req.params.id]);
+  if (rows.length === 0) return res.status(404).json({ error: "Topilmadi" });
   res.json({ ok: true });
-});
+}));
 
-app.delete("/api/admin/stories/:id", authMiddleware, (req, res) => {
-  const stories = readStories();
-  const s = stories.find(x => x.id === req.params.id);
-  if (s && s.rasm && s.rasm.startsWith("/uploads/")) {
-    const filePath = path.join(UPLOADS_DIR, path.basename(s.rasm));
+app.delete("/api/admin/stories/:id", authMiddleware, asyncRoute(async (req, res) => {
+  const { rows } = await pool.query("DELETE FROM stories WHERE id = $1 RETURNING rasm, rasm_public_id", [req.params.id]);
+  const rasm = rows[0]?.rasm;
+  const rasmPublicId = rows[0]?.rasm_public_id;
+  if (rasmPublicId) {
+    await deleteByPublicId(rasmPublicId);
+  } else if (rasm && rasm.startsWith("/uploads/")) {
+    const filePath = path.join(UPLOADS_DIR, path.basename(rasm));
     if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
   }
-  const filtered = stories.filter(x => x.id !== req.params.id);
-  writeStories(filtered);
   res.json({ ok: true });
-});
+}));
 
-// ============ PLACES API ============
+/* ============ USERS ============ */
 
-// Barcha joylar (ommaviy)
-app.get("/api/places", (req, res) => {
-  res.json(readPlaces());
-});
+app.get("/api/admin/users", authMiddleware, asyncRoute(async (req, res) => {
+  const { rows } = await pool.query(`
+    SELECT
+      COALESCE(NULLIF(TRIM(email), ''), '') AS email,
+      ARRAY_AGG(DISTINCT ism) AS ismlar,
+      COUNT(*)::int AS jami,
+      SUM(CASE WHEN approved THEN 1 ELSE 0 END)::int AS tasdiqlangan,
+      MAX(sana) AS "oxirgiSana"
+    FROM stories
+    GROUP BY COALESCE(NULLIF(TRIM(email), ''), '')
+    ORDER BY "oxirgiSana" DESC
+  `);
+  res.json(rows);
+}));
 
-// Yangi joy qo'shish (admin)
-app.post("/api/admin/places", authMiddleware, upload.single("rasm"), (req, res) => {
+/* ============ PLACES ============ */
+
+app.get("/api/places", asyncRoute(async (req, res) => {
+  const { rows } = await pool.query("SELECT * FROM places ORDER BY nom ASC");
+  res.json(rows);
+}));
+
+app.post("/api/admin/places", authMiddleware, upload.single("rasm"), asyncRoute(async (req, res) => {
   const { nom, turi, tavsif, manzil, lat, lng } = req.body || {};
-
   if (!nom || nom.trim().length < 2) {
-    if (req.file) fs.unlinkSync(req.file.path);
+    if (req.file && req.file.path) fs.unlinkSync(req.file.path);
     return res.status(400).json({ error: "Nom kamida 2 harf bo'lishi kerak" });
   }
   if (!turi) {
-    if (req.file) fs.unlinkSync(req.file.path);
+    if (req.file && req.file.path) fs.unlinkSync(req.file.path);
     return res.status(400).json({ error: "Tur tanlanishi kerak" });
   }
 
-  const places = readPlaces();
+  const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  let rasm = "";
+  let rasmPublicId = "";
+
+  if (req.file) {
+    if (hasCloudinary) {
+      const result = await uploadBuffer(req.file.buffer, "buloqboshi/joylar");
+      rasm = result.secure_url;
+      rasmPublicId = result.public_id;
+    } else {
+      rasm = "/uploads/" + req.file.filename;
+    }
+  }
+
   const yangi = {
-    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 8),
+    id,
     nom: nom.trim().slice(0, 80),
     turi: turi.trim(),
     tavsif: (tavsif || "").trim().slice(0, 500),
     manzil: (manzil || "").trim().slice(0, 120),
     lat: parseFloat(lat) || 39.6485,
     lng: parseFloat(lng) || 65.9761,
-    rasm: req.file ? "/uploads/" + req.file.filename : ""
+    rasm
   };
-  places.push(yangi);
-  writePlaces(places);
+
+  await pool.query(
+    `INSERT INTO places (id, nom, turi, tavsif, manzil, lat, lng, rasm, rasm_public_id)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+    [yangi.id, yangi.nom, yangi.turi, yangi.tavsif, yangi.manzil, yangi.lat, yangi.lng, yangi.rasm, rasmPublicId]
+  );
 
   res.json({ ok: true, place: yangi });
-});
+}));
 
-// Joy o'chirish (admin)
-app.delete("/api/admin/places/:id", authMiddleware, (req, res) => {
-  const places = readPlaces();
-  const p = places.find(x => x.id === req.params.id);
-  if (p && p.rasm && p.rasm.startsWith("/uploads/")) {
-    const filePath = path.join(UPLOADS_DIR, path.basename(p.rasm));
+app.delete("/api/admin/places/:id", authMiddleware, asyncRoute(async (req, res) => {
+  const { rows } = await pool.query("DELETE FROM places WHERE id = $1 RETURNING rasm, rasm_public_id", [req.params.id]);
+  const rasm = rows[0]?.rasm;
+  const rasmPublicId = rows[0]?.rasm_public_id;
+  if (rasmPublicId) {
+    await deleteByPublicId(rasmPublicId);
+  } else if (rasm && rasm.startsWith("/uploads/")) {
+    const filePath = path.join(UPLOADS_DIR, path.basename(rasm));
     if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
   }
-  const filtered = places.filter(x => x.id !== req.params.id);
-  writePlaces(filtered);
   res.json({ ok: true });
-});
+}));
 
-// Barcha joylar (admin)
-app.get("/api/admin/places", authMiddleware, (req, res) => {
-  res.json(readPlaces());
-});
+app.get("/api/admin/places", authMiddleware, asyncRoute(async (req, res) => {
+  const { rows } = await pool.query("SELECT * FROM places ORDER BY nom ASC");
+  res.json(rows);
+}));
 
-// ============ LOGIN ============
+/* ============ LOGIN ============ */
 
 app.post("/api/admin/login", (req, res) => {
   const { password } = req.body || {};
-  if (password === ADMIN_PASSWORD) {
-    return res.json({ ok: true });
-  }
+  if (password === ADMIN_PASSWORD) return res.json({ ok: true });
   res.status(401).json({ error: "Parol noto'g'ri" });
 });
 
-// ============ SPA FALLBACK ============
+/* ============ SPA FALLBACK ============ */
 
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-// ============ XATO USHLASH ============
+/* ============ XATO USHLASH ============ */
 
 app.use((err, req, res, next) => {
   if (err instanceof multer.MulterError) {
     return res.status(400).json({ error: "Fayl hajmi juda katta (5 MB dan oshmasin)" });
   }
   if (err) {
-    return res.status(400).json({ error: err.message });
+    console.error(err);
+    return res.status(500).json({ error: err.message || "Server xatosi" });
   }
   next();
 });
 
-// ============ ISHGA TUSHIRISH ============
+/* ============ ISHGA TUSHIRISH ============ */
 
-app.listen(PORT, () => {
-  console.log(`✅ Server ishga tushdi: http://localhost:${PORT}`);
-  console.log(`🔐 Admin: http://localhost:${PORT}/admin.html`);
-});
+async function start() {
+  try {
+    await initDb();
+    app.listen(PORT, () => {
+      console.log(`✅ Server ishga tushdi: http://localhost:${PORT}`);
+      console.log(`🔐 Admin: http://localhost:${PORT}/admin.html`);
+    });
+  } catch (err) {
+    console.error("❌ Ma'lumotlar bazasiga ulanib bo'lmadi:", err.message);
+    console.error("DATABASE_URL muhit o'zgaruvchisi to'g'ri o'rnatilganini tekshiring.");
+  }
+}
+
+start();
