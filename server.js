@@ -252,14 +252,16 @@ app.use((err, req, res, next) => {
 async function start() {
   try {
     await initDb();
-    app.listen(PORT, () => {
-      console.log(`✅ Server ishga tushdi: http://localhost:${PORT}`);
-      console.log(`🔐 Admin: http://localhost:${PORT}/admin.html`);
-    });
+    console.log("✅ Ma'lumotlar bazasi ulanishi muvaffaqiyatli");
   } catch (err) {
-    console.error("❌ Ma'lumotlar bazasiga ulanib bo'lmadi:", err.message);
-    console.error("DATABASE_URL muhit o'zgaruvchisi to'g'ri o'rnatilganini tekshiring.");
+    console.error("⚠️ Ma'lumotlar bazasiga ulanib bo'lmadi:", err.message);
+    console.error("Server bazasiz ishga tushadi");
   }
+
+  app.listen(PORT, () => {
+    console.log(`✅ Server ishga tushdi: http://localhost:${PORT}`);
+    console.log(`🔐 Admin: http://localhost:${PORT}/admin.html`);
+  });
 }
 
 start();
